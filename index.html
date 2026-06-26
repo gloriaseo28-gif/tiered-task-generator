@@ -4,23 +4,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tiered Task Generator</title>
-  <meta name="description" content="AI-powered differentiation tool for Australian K–10 teachers." />
+  <meta name="description" content="AI-powered tiered assessment worksheet generator for Australian K-10 teachers." />
   <style>
     @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap');
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'DM Sans', system-ui, -apple-system, sans-serif; background: #F4F7FB; color: #1A2332; min-height: 100vh; }
 
-    body {
-      font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
-      background: #F4F7FB;
-      color: #1A2332;
-      min-height: 100vh;
-    }
-
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(14px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes spin { to { transform: rotate(360deg); } }
 
     /* ── Header ── */
@@ -28,188 +19,173 @@
     .header-eyebrow { display: flex; align-items: center; gap: 7px; margin-bottom: 5px; }
     .header-tag { font-size: 11px; font-weight: 600; color: #F5A623; letter-spacing: 0.12em; text-transform: uppercase; }
     .header h1 { font-size: 24px; font-weight: 700; color: #fff; line-height: 1.2; }
-    .header p  { font-size: 14px; color: #7A8FA8; margin-top: 5px; }
+    .header p { font-size: 14px; color: #7A8FA8; margin-top: 5px; }
 
     /* ── Layout ── */
-    .container { max-width: 720px; margin: 0 auto; padding: 28px 20px 64px; }
-
-    /* ── Cards ── */
-    .card {
-      background: #fff;
-      border-radius: 16px;
-      padding: 28px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.05), 0 4px 24px rgba(0,0,0,0.05);
-      margin-bottom: 20px;
-      animation: fadeUp 0.3s ease;
-    }
+    .container { max-width: 760px; margin: 0 auto; padding: 28px 20px 64px; }
+    .card { background: #fff; border-radius: 16px; padding: 28px; box-shadow: 0 1px 4px rgba(0,0,0,0.05), 0 4px 24px rgba(0,0,0,0.05); margin-bottom: 20px; animation: fadeUp 0.3s ease; }
 
     /* ── Section labels ── */
-    .section-label {
-      display: flex; align-items: center; gap: 7px;
-      font-size: 11px; font-weight: 600; color: #4A5968;
-      text-transform: uppercase; letter-spacing: 0.1em;
-      margin-bottom: 14px;
-    }
+    .section-label { display: flex; align-items: center; gap: 7px; font-size: 11px; font-weight: 600; color: #4A5968; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 14px; }
     .section-note { font-size: 12px; color: #9AAABB; font-weight: 400; text-transform: none; letter-spacing: 0; }
 
     /* ── Form elements ── */
     label { display: block; font-size: 13px; font-weight: 500; color: #3A4A5C; margin-bottom: 5px; }
     .required { color: #B8380D; }
     .opt { color: #9AAABB; font-weight: 400; }
-
-    input[type="text"],
-    input[type="number"],
-    select,
-    textarea {
+    input[type="text"], input[type="number"], select, textarea {
       width: 100%; padding: 10px 12px; border-radius: 8px;
       border: 1.5px solid #D4DCE8; font-size: 14px; color: #1A2332;
       font-family: inherit; background: #fff;
-      transition: border-color 0.15s, box-shadow 0.15s;
-      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s; outline: none;
     }
     input[type="number"] { width: 72px; }
     textarea { resize: vertical; line-height: 1.55; }
-    input:focus, select:focus, textarea:focus {
-      border-color: #4A7FCA;
-      box-shadow: 0 0 0 3px rgba(74,127,202,0.14);
-    }
+    input:focus, select:focus, textarea:focus { border-color: #4A7FCA; box-shadow: 0 0 0 3px rgba(74,127,202,0.14); }
     select { cursor: pointer; }
-
     .row2 { display: flex; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
     .row2 > div { flex: 1; min-width: 140px; }
-    .mb14 { margin-bottom: 14px; }
     .mb28 { margin-bottom: 28px; }
 
-    /* ── Tier spectrum strip ── */
+    /* ── Tier strip ── */
     .profile-strip { display: flex; height: 3px; border-radius: 4px; gap: 2px; margin-bottom: 16px; }
     .strip-ls { flex: 1; background: rgba(184,56,13,0.3); border-radius: 2px; }
     .strip-st { flex: 1; background: rgba(37,82,160,0.3); border-radius: 2px; }
     .strip-ex { flex: 1; background: rgba(26,94,56,0.3); border-radius: 2px; }
 
-    /* ── Number inputs grid ── */
+    /* ── Number inputs ── */
     .num-grid { display: flex; gap: 18px; flex-wrap: wrap; margin-bottom: 14px; }
     .num-item { display: flex; flex-direction: column; gap: 4px; }
     .num-item .nlabel { font-size: 13px; font-weight: 500; color: #3A4A5C; }
-    .num-item .nsub   { font-size: 11px; color: #9AAABB; }
+    .num-item .nsub { font-size: 11px; color: #9AAABB; }
 
     /* ── Generate button ── */
-    .gen-btn {
-      width: 100%; padding: 14px; border-radius: 10px; border: none;
-      font-family: inherit; font-size: 15px; font-weight: 600;
-      display: flex; align-items: center; justify-content: center; gap: 8px;
-      cursor: pointer; transition: all 0.18s ease;
-      background: #F5A623; color: #fff;
-    }
-    .gen-btn:hover:not(:disabled) {
-      background: #E09610;
-      transform: translateY(-1px);
-      box-shadow: 0 8px 24px rgba(240,165,0,0.28);
-    }
+    .gen-btn { width: 100%; padding: 14px; border-radius: 10px; border: none; font-family: inherit; font-size: 15px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; transition: all 0.18s ease; background: #F5A623; color: #fff; }
+    .gen-btn:hover:not(:disabled) { background: #E09610; transform: translateY(-1px); box-shadow: 0 8px 24px rgba(240,165,0,0.28); }
     .gen-btn:active:not(:disabled) { transform: translateY(0); }
     .gen-btn:disabled { background: #E2E8F0; color: #9AAABB; cursor: not-allowed; }
+    .spinner { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; }
 
-    /* ── Spinner ── */
-    .spinner {
-      width: 16px; height: 16px;
-      border: 2px solid rgba(255,255,255,0.3);
-      border-top-color: #fff;
-      border-radius: 50%;
-      animation: spin 0.7s linear infinite;
-    }
+    /* ── Error ── */
+    .error-box { background: #FFF5F2; border: 1.5px solid #F5C4B4; border-radius: 10px; padding: 14px 18px; margin-bottom: 20px; color: #B8380D; font-size: 14px; }
 
-    /* ── Error box ── */
-    .error-box {
-      background: #FFF5F2; border: 1.5px solid #F5C4B4;
-      border-radius: 10px; padding: 14px 18px;
-      margin-bottom: 20px; color: #B8380D; font-size: 14px;
-    }
+    /* ── Action bar ── */
+    .action-bar { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
+    .action-btn { padding: 9px 16px; border-radius: 8px; border: none; font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; gap: 6px; }
+    .btn-print { background: #1A2332; color: #fff; }
+    .btn-print:hover { background: #2D3F56; }
+    .btn-answer { background: #fff; color: #3A4A5C; border: 1.5px solid #D4DCE8; }
+    .btn-answer:hover { background: #F4F7FB; }
+    .btn-form { background: #fff; color: #3A4A5C; border: 1.5px solid #D4DCE8; }
+    .btn-form:hover { background: #F4F7FB; }
+    .btn-new { background: #fff; color: #3A4A5C; border: 1.5px solid #D4DCE8; }
+    .btn-new:hover { background: #F4F7FB; }
 
-    /* ── Output header ── */
-    .output-header {
-      display: flex; align-items: flex-start;
-      justify-content: space-between; gap: 16px; margin-bottom: 20px;
-    }
-    .focus-label {
-      font-size: 11px; font-weight: 600; color: #9AAABB;
-      text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px;
-    }
-    .focus-text { font-size: 15px; color: #1A2332; font-weight: 500; line-height: 1.5; }
+    /* ── Lesson info bar ── */
+    .lesson-info-bar { background: #1A2332; border-radius: 10px; padding: 16px 20px; margin-bottom: 14px; }
+    .lesson-title { font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 5px; }
+    .lesson-outcomes { font-size: 12px; color: #7A8FA8; line-height: 1.5; }
 
-    /* ── Reset button ── */
-    .reset-btn {
-      display: flex; align-items: center; gap: 6px;
-      padding: 8px 14px; border-radius: 8px;
-      border: 1.5px solid #D4DCE8; background: #fff;
-      color: #5A6A82; font-size: 13px; font-weight: 500;
-      cursor: pointer; white-space: nowrap; flex-shrink: 0;
-      font-family: inherit; transition: background 0.15s;
-    }
-    .reset-btn:hover { background: #F4F7FB; }
+    /* ── Tier legend ── */
+    .tier-legend { display: flex; align-items: center; gap: 20px; padding: 10px 16px; background: #F4F7FB; border-radius: 8px; margin-bottom: 18px; flex-wrap: wrap; }
+    .tier-legend-label { font-size: 12px; font-weight: 600; color: #4A5968; }
+    .tier-legend-item { display: flex; align-items: center; gap: 5px; font-size: 13px; font-weight: 600; }
 
-    /* ── Tier cards ── */
-    .tier-cards { display: flex; flex-direction: column; gap: 14px; }
+    /* ── Concept groups ── */
+    .concept-group { border: 1.5px solid #E2E8F0; border-radius: 12px; margin-bottom: 14px; overflow: hidden; }
+    .concept-group-title { background: #F4F7FB; padding: 9px 16px; font-size: 11px; font-weight: 600; color: #4A5968; text-transform: uppercase; letter-spacing: 0.08em; border-bottom: 1px solid #E2E8F0; }
+    .question-row { display: flex; gap: 14px; padding: 14px 16px; border-bottom: 1px solid #F0F4F8; }
+    .question-row:last-child { border-bottom: none; }
+    .q-symbol { font-size: 15px; font-weight: 700; min-width: 30px; padding-top: 1px; flex-shrink: 0; line-height: 1.4; }
+    .q-content { flex: 1; }
+    .q-text { font-size: 14px; color: #2C3A4A; line-height: 1.55; margin-bottom: 10px; }
+    .working-line { border-bottom: 1px solid #D4DCE8; height: 28px; margin: 2px 0; }
+    .answer-reveal { margin-top: 10px; padding: 8px 12px; background: #F0FFF4; border: 1px solid #AEDCC0; border-radius: 6px; font-size: 13px; color: #1A5E38; display: none; }
+    .answer-reveal.visible { display: block; }
 
-    .tier-card {
-      background: #fff; border-radius: 12px;
-      padding: 22px; animation: fadeUp 0.4s ease both;
-    }
+    /* ── Exit slip ── */
+    .exit-slip-wrapper { border: 2px solid #1A2332; border-radius: 12px; margin-top: 20px; overflow: hidden; }
+    .exit-slip-header { background: #1A2332; padding: 12px 18px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+    .exit-slip-title { color: #fff; font-size: 14px; font-weight: 600; }
+    .exit-slip-sub { color: #7A8FA8; font-size: 12px; }
+    .exit-question { padding: 14px 18px; border-bottom: 1px solid #E2E8F0; }
+    .exit-question:last-child { border-bottom: none; }
+    .exit-q-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+    .exit-q-num { width: 22px; height: 22px; border-radius: 6px; background: #1A2332; color: #fff; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .exit-q-symbol { font-size: 14px; font-weight: 700; }
+    .exit-q-outcome { font-size: 11px; color: #9AAABB; margin-left: auto; }
+    .exit-q-text { font-size: 14px; color: #2C3A4A; line-height: 1.55; margin-bottom: 10px; }
 
-    /* ── Tier badge ── */
-    .tier-badge {
-      display: inline-flex; align-items: center; gap: 6px;
-      padding: 4px 12px; border-radius: 20px;
-      font-size: 12px; font-weight: 600; letter-spacing: 0.02em;
-      margin-bottom: 10px;
-    }
-    .tier-dot { width: 7px; height: 7px; border-radius: 50%; }
-
-    /* ── Tier card content ── */
-    .tier-desc { font-size: 13px; color: #6A7A8E; font-style: italic; line-height: 1.5; margin-bottom: 16px; }
-    .sub-label { font-size: 11px; font-weight: 600; color: #9AAABB; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px; }
-
-    .task-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
-    .task-item { display: flex; gap: 10px; align-items: flex-start; }
-    .task-num {
-      min-width: 22px; height: 22px; border-radius: 6px;
-      font-size: 11px; font-weight: 700;
-      display: flex; align-items: center; justify-content: center;
-      margin-top: 1px; flex-shrink: 0;
-    }
-    .task-text { font-size: 14px; color: #2C3A4A; line-height: 1.55; }
-
-    .divider { border: none; border-top: 1px solid; margin: 16px 0 14px; }
-
-    .extra-list { list-style: none; display: flex; flex-direction: column; gap: 7px; }
-    .extra-item { display: flex; gap: 8px; align-items: flex-start; font-size: 14px; color: #4A5968; line-height: 1.5; }
-    .extra-icon { flex-shrink: 0; margin-top: 1px; font-size: 13px; }
-
-    /* ── Footer note ── */
+    /* ── Footer ── */
     .footer-note { font-size: 12px; color: #9AAABB; text-align: center; margin-top: 22px; line-height: 1.6; }
+
+    /* ── Print header (hidden on screen) ── */
+    .print-header { display: none; }
 
     /* ── Responsive ── */
     @media (max-width: 480px) {
       .header { padding: 18px 16px; }
       .container { padding: 20px 14px 48px; }
       .card { padding: 20px; }
-      .output-header { flex-direction: column; }
+    }
+
+    /* ── PRINT CSS ── */
+    @media print {
+      body { background: #fff; font-family: Arial, sans-serif; }
+      .header, .card, .action-bar, .footer-note { display: none !important; }
+
+      .print-header {
+        display: flex !important;
+        justify-content: space-between; align-items: flex-start;
+        margin-bottom: 16px; padding-bottom: 12px;
+        border-bottom: 2px solid #000;
+      }
+      .print-title { font-size: 14px; font-weight: bold; max-width: 60%; }
+      .print-outcomes { font-size: 10px; color: #444; margin-top: 3px; }
+      .print-fields { font-size: 12px; text-align: right; }
+      .print-field-line { border-bottom: 1px solid #000; display: inline-block; min-width: 140px; height: 16px; margin-left: 6px; vertical-align: bottom; }
+
+      .lesson-info-bar { background: none !important; border: 1.5px solid #000; padding: 8px 12px; margin-bottom: 10px; }
+      .lesson-title { color: #000 !important; font-size: 14px; }
+      .lesson-outcomes { color: #333 !important; font-size: 10px; }
+
+      .tier-legend { background: none !important; border: 1px solid #ccc; padding: 6px 12px; margin-bottom: 12px; }
+      .tier-legend-label, .tier-legend-item { font-size: 11px; }
+
+      .concept-group { border-color: #000 !important; margin-bottom: 10px; break-inside: avoid; }
+      .concept-group-title { background: #eee !important; font-size: 10px; padding: 6px 12px; }
+      .question-row { padding: 10px 12px; border-bottom: 1px solid #ccc !important; }
+      .q-symbol { font-size: 13px; min-width: 24px; }
+      .q-text { font-size: 12px; margin-bottom: 6px; }
+      .working-line { border-bottom: 1px solid #000 !important; height: 24px; }
+      .answer-reveal { display: none !important; }
+
+      .exit-slip-wrapper { border: 2px solid #000 !important; margin-top: 16px; break-inside: avoid; }
+      .exit-slip-header { background: #eee !important; padding: 8px 12px; }
+      .exit-slip-title { color: #000 !important; font-size: 12px; }
+      .exit-slip-sub { color: #333 !important; font-size: 10px; }
+      .exit-question { padding: 10px 12px; }
+      .exit-q-num { background: #333 !important; width: 18px; height: 18px; font-size: 10px; }
+      .exit-q-text { font-size: 12px; }
+      .exit-q-outcome { font-size: 10px; }
+
+      .container { padding: 0 !important; max-width: 100%; }
+      @page { margin: 18mm; size: A4; }
     }
   </style>
 </head>
 <body>
 
-<!-- ── Header ── -->
+<!-- Header -->
 <div class="header">
   <div class="header-eyebrow">
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="#F5A623">
-      <path d="M12 2L9.09 8.26L2 9.27L7 14.14L5.82 21.02L12 17.77L18.18 21.02L17 14.14L22 9.27L14.91 8.26L12 2Z"/>
-    </svg>
-    <span class="header-tag">AI Differentiation Tool</span>
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="#F5A623"><path d="M12 2L9.09 8.26L2 9.27L7 14.14L5.82 21.02L12 17.77L18.18 21.02L17 14.14L22 9.27L14.91 8.26L12 2Z"/></svg>
+    <span class="header-tag">AI Assessment Tool</span>
   </div>
-  <h1>Tiered Task Generator</h1>
-  <p>Enter a lesson objective and class profile — get differentiated tasks for every learner, instantly.</p>
+  <h1>Tiered Worksheet Generator</h1>
+  <p>Enter a lesson objective and class profile — get a print-ready differentiated worksheet and exit slip instantly.</p>
 </div>
 
-<!-- ── Main container ── -->
 <div class="container">
 
   <!-- Input card -->
@@ -218,13 +194,9 @@
     <!-- Lesson Details -->
     <div class="mb28">
       <div class="section-label">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#4A7FCA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
-          <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
-        </svg>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#4A7FCA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
         Lesson Details
       </div>
-
       <div class="row2">
         <div>
           <label for="yearLevel">Year Level</label>
@@ -238,56 +210,39 @@
         </div>
         <div>
           <label for="subject">Subject</label>
-          <input type="text" id="subject" placeholder="e.g. English, Mathematics, Science" />
+          <input type="text" id="subject" placeholder="e.g. Mathematics, English, Science" />
         </div>
       </div>
-
       <div>
-        <label for="lessonObj">
-          Lesson Objective <span class="required">*</span>
-        </label>
-        <textarea
-          id="lessonObj"
-          rows="3"
-          placeholder="e.g. Students will identify and describe features of persuasive texts, including emotive language and logical arguments."
-        ></textarea>
+        <label for="lessonObj">Lesson Objective <span class="required">*</span></label>
+        <textarea id="lessonObj" rows="3" placeholder="e.g. Students will use equivalence to add and subtract fractions with unlike denominators."></textarea>
       </div>
     </div>
 
     <!-- Class Profile -->
     <div class="mb28">
       <div class="section-label">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#4A7FCA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-          <circle cx="9" cy="7" r="4"/>
-          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-          <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-        </svg>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#4A7FCA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         Class Profile
         <span class="section-note">— students per group</span>
       </div>
-
-      <!-- Tier spectrum strip -->
       <div class="profile-strip">
-        <div class="strip-ls"></div>
-        <div class="strip-st"></div>
-        <div class="strip-ex"></div>
+        <div class="strip-ls"></div><div class="strip-st"></div><div class="strip-ex"></div>
       </div>
-
       <div class="num-grid">
         <div class="num-item">
           <span class="nlabel">Below year level</span>
-          <span class="nsub">Learning Support</span>
+          <span class="nsub">◆ Foundation</span>
           <input type="number" id="numLS" min="0" placeholder="0" />
         </div>
         <div class="num-item">
           <span class="nlabel">At year level</span>
-          <span class="nsub">Standard</span>
+          <span class="nsub">◆◆ Core</span>
           <input type="number" id="numST" min="0" placeholder="0" />
         </div>
         <div class="num-item">
           <span class="nlabel">Above year level</span>
-          <span class="nsub">Extension / G&amp;T</span>
+          <span class="nsub">◆◆◆ Extension</span>
           <input type="number" id="numEX" min="0" placeholder="0" />
         </div>
         <div class="num-item">
@@ -296,105 +251,104 @@
           <input type="number" id="numEALD" min="0" placeholder="0" />
         </div>
       </div>
-
       <div>
-        <label for="notes">
-          Additional notes <span class="opt">(optional)</span>
-        </label>
-        <textarea
-          id="notes"
-          rows="2"
-          placeholder="e.g. 3 students have reading IEPs; class is strong in discussion but struggles with written tasks…"
-        ></textarea>
+        <label for="notes">Additional notes <span class="opt">(optional)</span></label>
+        <textarea id="notes" rows="2" placeholder="e.g. students are approaching end-of-unit assessment; strong orally but struggle with written tasks…"></textarea>
       </div>
     </div>
 
-    <!-- Generate button -->
     <button class="gen-btn" id="genBtn" disabled>
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M12 2L9.09 8.26L2 9.27L7 14.14L5.82 21.02L12 17.77L18.18 21.02L17 14.14L22 9.27L14.91 8.26L12 2Z"/>
-      </svg>
-      Generate differentiated tasks
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L9.09 8.26L2 9.27L7 14.14L5.82 21.02L12 17.77L18.18 21.02L17 14.14L22 9.27L14.91 8.26L12 2Z"/></svg>
+      Generate worksheet &amp; assessment
     </button>
-  </div><!-- /card -->
+  </div>
 
-  <!-- Error box -->
+  <!-- Error -->
   <div id="errorBox" class="error-box" style="display:none"></div>
 
-  <!-- Output area -->
+  <!-- Output -->
   <div id="outputArea" style="display:none">
-    <div class="output-header">
-      <div>
-        <div class="focus-label">Shared Learning Focus</div>
-        <div class="focus-text" id="lessonFocus"></div>
-      </div>
-      <button class="reset-btn" id="resetBtn">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
-          <path d="M3 3v5h5"/>
-        </svg>
-        New lesson
+
+    <!-- Action bar -->
+    <div class="action-bar">
+      <button class="action-btn btn-print" onclick="window.print()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+        Print Worksheet
+      </button>
+      <button class="action-btn btn-answer" id="answerKeyBtn" onclick="toggleAnswerKey()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        Show Answer Key
+      </button>
+      <button class="action-btn btn-form" id="copyFormBtn" onclick="copyFormText()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        Copy Form Text
+      </button>
+      <button class="action-btn btn-new" onclick="resetOutput()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+        New Lesson
       </button>
     </div>
 
-    <div class="tier-cards" id="tierCards"></div>
+    <!-- Print header (hidden on screen, visible when printing) -->
+    <div class="print-header">
+      <div>
+        <div class="print-title" id="printTitle"></div>
+        <div class="print-outcomes" id="printOutcomes"></div>
+      </div>
+      <div class="print-fields">
+        Name: <span class="print-field-line"></span><br><br>
+        Date: <span class="print-field-line" style="min-width:100px"></span>
+      </div>
+    </div>
 
-    <p class="footer-note">
-      Always review generated tasks for accuracy and alignment to your students' needs before use.
-    </p>
-  </div><!-- /outputArea -->
+    <!-- Lesson info -->
+    <div class="lesson-info-bar">
+      <div class="lesson-title" id="lessonTitle"></div>
+      <div class="lesson-outcomes" id="lessonOutcomes"></div>
+    </div>
 
-</div><!-- /container -->
+    <!-- Tier legend -->
+    <div class="tier-legend">
+      <span class="tier-legend-label">Complete questions at your level:</span>
+      <div class="tier-legend-item" style="color:#B8380D">◆ &nbsp;Foundation</div>
+      <div class="tier-legend-item" style="color:#2552A0">◆◆ &nbsp;Core</div>
+      <div class="tier-legend-item" style="color:#1A5E38">◆◆◆ &nbsp;Extension</div>
+    </div>
+
+    <!-- Worksheet concept groups -->
+    <div id="worksheetContent"></div>
+
+    <!-- Exit slip -->
+    <div id="exitSlipContent"></div>
+
+    <p class="footer-note">Review all content before distributing. Always exercise teacher judgement on suitability for individual students.</p>
+  </div>
+
+</div>
 
 <script>
-  // ── Tier configuration ──────────────────────────────────────────────────────
-  const TIERS = {
-    learningSupport: {
-      label: 'Learning Support',
-      color: '#B8380D', bg: '#FFF5F2', border: '#F5C4B4',
-    },
-    standard: {
-      label: 'Standard',
-      color: '#2552A0', bg: '#F2F6FF', border: '#C2D1F0',
-    },
-    extension: {
-      label: 'Extension / G&T',
-      color: '#1A5E38', bg: '#F2FAF5', border: '#AEDCC0',
-    },
-  };
+  const TIER_COLORS = { 1: '#B8380D', 2: '#2552A0', 3: '#1A5E38' };
+  let currentFormText = '';
+  let answerKeyVisible = false;
 
-  // ── DOM references ──────────────────────────────────────────────────────────
+  // DOM refs
   const objInput   = document.getElementById('lessonObj');
   const genBtn     = document.getElementById('genBtn');
   const errorBox   = document.getElementById('errorBox');
   const outputArea = document.getElementById('outputArea');
-  const tierCards  = document.getElementById('tierCards');
-  const focusEl    = document.getElementById('lessonFocus');
 
-  // Enable button once objective has enough text
   objInput.addEventListener('input', () => {
     genBtn.disabled = objInput.value.trim().length < 10;
   });
 
-  // Reset button
-  document.getElementById('resetBtn').addEventListener('click', () => {
-    outputArea.style.display = 'none';
-    errorBox.style.display   = 'none';
-    tierCards.innerHTML      = '';
-  });
-
-  // Generate button
-  genBtn.addEventListener('click', generate);
-
-  // ── Main generate function ──────────────────────────────────────────────────
+  // ── Generate ────────────────────────────────────────────────────────────────
   async function generate() {
     genBtn.disabled = true;
-    genBtn.innerHTML = '<div class="spinner"></div>Generating tasks…';
+    genBtn.innerHTML = '<div class="spinner"></div>Building worksheet… (this takes 10–15 seconds)';
     errorBox.style.display   = 'none';
     outputArea.style.display = 'none';
-    tierCards.innerHTML      = '';
+    answerKeyVisible = false;
 
-    // Collect form values
     const obj   = objInput.value.trim();
     const year  = document.getElementById('yearLevel').value;
     const subj  = document.getElementById('subject').value.trim();
@@ -405,120 +359,165 @@
     const notes = document.getElementById('notes').value.trim();
 
     try {
-      // Call our serverless function (which calls Anthropic securely)
       const res = await fetch('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           lessonObjective: obj,
-          yearLevel:       year,
-          subject:         subj,
-          classProfile:    { ls, st, ex, eald, notes },
+          yearLevel: year,
+          subject: subj,
+          classProfile: { ls, st, ex, eald, notes },
         }),
       });
 
       const data = await res.json();
       if (data.error) throw new Error(data.error);
 
-      // ── ZAPIER WEBHOOK ─────────────────────────────────────────────────────
-      // Add this after your Zapier Zap is built.
-      // Replace YOUR_ZAPIER_WEBHOOK_URL with the URL from your Zap.
-      //
+      // ── ZAPIER WEBHOOK ──────────────────────────────────────────────────────
+      // Uncomment after your Make/Zapier scenario is built.
       // try {
-      //   await fetch('YOUR_ZAPIER_WEBHOOK_URL', {
+      //   await fetch('YOUR_WEBHOOK_URL', {
       //     method: 'POST',
       //     headers: { 'Content-Type': 'application/json' },
       //     body: JSON.stringify({
-      //       timestamp:       new Date().toISOString(),
-      //       lessonObjective: obj,
-      //       yearLevel:       year,
-      //       subject:         subj,
-      //       classProfile:    { ls, st, ex, eald, notes },
-      //       generatedTasks:  data,
+      //       timestamp: new Date().toISOString(),
+      //       lessonObjective: obj, yearLevel: year, subject: subj,
+      //       classProfile: { ls, st, ex, eald, notes },
+      //       generatedContent: data,
       //     }),
       //   });
-      // } catch (zapErr) {
-      //   // Non-blocking — a Zapier failure should never break the teacher's experience
-      //   console.warn('Zapier webhook failed (non-blocking):', zapErr);
-      // }
-      // ──────────────────────────────────────────────────────────────────────
+      // } catch (e) { console.warn('Webhook non-blocking error:', e); }
+      // ────────────────────────────────────────────────────────────────────────
 
+      currentFormText = data.googleFormsText || '';
       renderOutput(data);
 
     } catch (err) {
-      errorBox.textContent    = err.message || 'Something went wrong. Please try again.';
-      errorBox.style.display  = 'block';
+      errorBox.textContent   = err.message || 'Something went wrong. Please try again.';
+      errorBox.style.display = 'block';
       console.error(err);
     } finally {
       genBtn.disabled = false;
-      genBtn.innerHTML = `
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M12 2L9.09 8.26L2 9.27L7 14.14L5.82 21.02L12 17.77L18.18 21.02L17 14.14L22 9.27L14.91 8.26L12 2Z"/>
-        </svg>
-        Generate differentiated tasks`;
+      genBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L9.09 8.26L2 9.27L7 14.14L5.82 21.02L12 17.77L18.18 21.02L17 14.14L22 9.27L14.91 8.26L12 2Z"/></svg>Generate worksheet &amp; assessment';
     }
   }
 
-  // ── Render tier cards ───────────────────────────────────────────────────────
+  genBtn.addEventListener('click', generate);
+
+  // ── Render output ────────────────────────────────────────────────────────────
   function renderOutput(data) {
-    focusEl.textContent = data.lessonFocus || '';
-    tierCards.innerHTML = '';
+    const info = data.lessonInfo || {};
+    const outcomes = (info.syllabusOutcomes || []).map(o => o.code + ': ' + o.description).join(' · ');
 
-    ['learningSupport', 'standard', 'extension'].forEach((key, i) => {
-      const tier = TIERS[key];
-      const d    = data[key];
-      if (!d) return;
+    // Lesson info bar
+    document.getElementById('lessonTitle').textContent   = info.title || 'Lesson Worksheet';
+    document.getElementById('lessonOutcomes').textContent = outcomes;
+    document.getElementById('printTitle').textContent    = info.title || '';
+    document.getElementById('printOutcomes').textContent = outcomes;
 
-      // Build extras section (scaffolds or challenges)
-      let extrasHTML = '';
-      if (key === 'learningSupport' && d.scaffolds?.length) {
-        extrasHTML = `
-          <hr class="divider" style="border-top-color:${tier.border}">
-          <div class="sub-label">Scaffolds &amp; Supports</div>
-          <ul class="extra-list">
-            ${d.scaffolds.map(s => `
-              <li class="extra-item">
-                <span class="extra-icon" style="color:${tier.color}">◆</span>
-                <span>${s}</span>
-              </li>`).join('')}
-          </ul>`;
-      }
-      if (key === 'extension' && d.challenges?.length) {
-        extrasHTML = `
-          <hr class="divider" style="border-top-color:${tier.border}">
-          <div class="sub-label">Extension Challenges</div>
-          <ul class="extra-list">
-            ${d.challenges.map(c => `
-              <li class="extra-item">
-                <span class="extra-icon" style="color:${tier.color}">★</span>
-                <span>${c}</span>
-              </li>`).join('')}
-          </ul>`;
-      }
-
-      const card = document.createElement('div');
-      card.className = 'tier-card';
-      card.style.cssText = `border: 1.5px solid ${tier.border}; animation-delay: ${i * 0.1}s`;
-      card.innerHTML = `
-        <div class="tier-badge" style="background:${tier.bg};border:1.5px solid ${tier.border};color:${tier.color}">
-          <span class="tier-dot" style="background:${tier.color}"></span>
-          ${tier.label}
-        </div>
-        <div class="tier-desc">${d.description}</div>
-        <div class="sub-label">Tasks</div>
-        <ul class="task-list">
-          ${(d.tasks || []).map((t, j) => `
-            <li class="task-item">
-              <span class="task-num" style="background:${tier.bg};border:1px solid ${tier.border};color:${tier.color}">${j + 1}</span>
-              <span class="task-text">${t}</span>
-            </li>`).join('')}
-        </ul>
-        ${extrasHTML}
-      `;
-      tierCards.appendChild(card);
+    // Worksheet
+    const worksheetDiv = document.getElementById('worksheetContent');
+    worksheetDiv.innerHTML = '';
+    const groups = (data.worksheet && data.worksheet.conceptGroups) || [];
+    groups.forEach((group, gi) => {
+      const groupEl = document.createElement('div');
+      groupEl.className = 'concept-group';
+      groupEl.innerHTML = '<div class="concept-group-title">Section ' + (gi + 1) + ': ' + escHtml(group.conceptTitle) + '</div>';
+      (group.questions || []).forEach(q => {
+        const color = TIER_COLORS[q.tier] || '#333';
+        groupEl.innerHTML += '<div class="question-row">' +
+          '<div class="q-symbol" style="color:' + color + '">' + escHtml(q.symbol) + '</div>' +
+          '<div class="q-content">' +
+            '<div class="q-text">' + escHtml(q.question) + '</div>' +
+            renderWorkingLines(q.workingLines || 3) +
+            '<div class="answer-reveal" data-answer="' + escAttr(q.answer) + '">' +
+              '<strong>Answer:</strong> ' + escHtml(q.answer) +
+            '</div>' +
+          '</div>' +
+        '</div>';
+      });
+      worksheetDiv.appendChild(groupEl);
     });
 
+    // Exit slip
+    const exitDiv = document.getElementById('exitSlipContent');
+    const exitData = data.exitSlip || {};
+    let exitHtml = '<div class="exit-slip-wrapper">' +
+      '<div class="exit-slip-header">' +
+        '<span class="exit-slip-title">Exit Slip — All Students</span>' +
+        '<span class="exit-slip-sub">' + escHtml(exitData.instruction || '5–10 minutes') + '</span>' +
+      '</div>';
+    (exitData.questions || []).forEach(q => {
+      const color = TIER_COLORS[q.tier] || '#333';
+      exitHtml += '<div class="exit-question">' +
+        '<div class="exit-q-header">' +
+          '<div class="exit-q-num">' + q.questionNumber + '</div>' +
+          '<span class="exit-q-symbol" style="color:' + color + '">' + escHtml(q.symbol || '') + '</span>' +
+          '<span class="exit-q-outcome">' + escHtml(q.syllabusOutcomeCode || '') + '</span>' +
+        '</div>' +
+        '<div class="exit-q-text">' + escHtml(q.question) + '</div>' +
+        renderWorkingLines(q.workingLines || 4) +
+        '<div class="answer-reveal" data-answer="' + escAttr(q.answer) + '">' +
+          '<strong>Answer:</strong> ' + escHtml(q.answer) +
+        '</div>' +
+      '</div>';
+    });
+    exitHtml += '</div>';
+    exitDiv.innerHTML = exitHtml;
+
     outputArea.style.display = 'block';
+    outputArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  // ── Helper: working lines ────────────────────────────────────────────────────
+  function renderWorkingLines(count) {
+    let html = '';
+    for (let i = 0; i < count; i++) {
+      html += '<div class="working-line"></div>';
+    }
+    return html;
+  }
+
+  // ── Toggle answer key ────────────────────────────────────────────────────────
+  function toggleAnswerKey() {
+    answerKeyVisible = !answerKeyVisible;
+    document.querySelectorAll('.answer-reveal').forEach(el => {
+      el.classList.toggle('visible', answerKeyVisible);
+    });
+    document.getElementById('answerKeyBtn').textContent =
+      answerKeyVisible ? '⊘ Hide Answer Key' : 'ℹ Show Answer Key';
+  }
+
+  // ── Copy form text ────────────────────────────────────────────────────────────
+  function copyFormText() {
+    if (!currentFormText) return;
+    navigator.clipboard.writeText(currentFormText).then(() => {
+      const btn = document.getElementById('copyFormBtn');
+      btn.textContent = '✓ Copied!';
+      setTimeout(() => { btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy Form Text'; }, 2000);
+    }).catch(() => {
+      alert('Could not copy automatically. Please copy the form text manually:\n\n' + currentFormText);
+    });
+  }
+
+  // ── Reset ────────────────────────────────────────────────────────────────────
+  function resetOutput() {
+    outputArea.style.display = 'none';
+    errorBox.style.display   = 'none';
+    answerKeyVisible = false;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // ── Escape helpers ────────────────────────────────────────────────────────────
+  function escHtml(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+  function escAttr(str) {
+    return String(str).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   }
 </script>
 
