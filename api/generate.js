@@ -113,7 +113,7 @@ IMPORTANT: In the symbol field, write the actual diamond characters: use the uni
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
-        max_tokens: 3000,
+        max_tokens: 4096,
         system: systemPrompt,
         messages: [{ role: 'user', content: userMessage }],
       }),
