@@ -119,6 +119,19 @@
     /* ── Footer ── */
     .footer-note { font-size: 12px; color: #9AAABB; text-align: center; margin-top: 22px; line-height: 1.6; }
 
+    /* ── Lesson context display ── */
+    .lesson-meta { font-size: 11px; color: #F5A623; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
+    .lesson-objective-display { font-size: 13px; color: #A8BDD0; margin-top: 6px; line-height: 1.5; font-style: italic; }
+
+    /* ── Tier sections (grouped by difficulty) ── */
+    .tier-section { border-radius: 12px; margin-bottom: 16px; overflow: hidden; }
+    .tier-section-header { padding: 10px 16px; display: flex; align-items: center; gap: 10px; }
+    .tier-section-symbol { font-size: 18px; font-weight: 700; }
+    .tier-section-label { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; }
+    .tier-q-row { padding: 14px 16px; border-top: 1px solid; display: flex; gap: 10px; align-items: flex-start; }
+    .tier-q-num { min-width: 22px; height: 22px; border-radius: 6px; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+    .tier-q-concept { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
+
     /* ── Print header (hidden on screen) ── */
     .print-header { display: none; }
 
@@ -146,8 +159,16 @@
       .print-field-line { border-bottom: 1px solid #000; display: inline-block; min-width: 140px; height: 16px; margin-left: 6px; vertical-align: bottom; }
 
       .lesson-info-bar { background: none !important; border: 1.5px solid #000; padding: 8px 12px; margin-bottom: 10px; }
-      .lesson-title { color: #000 !important; font-size: 14px; }
+      .lesson-meta { color: #333 !important; font-size: 10px; }
+      .lesson-title { color: #000 !important; font-size: 13px; }
+      .lesson-objective-display { color: #333 !important; font-size: 11px; font-style: italic; }
       .lesson-outcomes { color: #333 !important; font-size: 10px; }
+      .tier-section { break-inside: avoid; border: 1.5px solid #ccc !important; }
+      .tier-section-header { background: #f5f5f5 !important; }
+      .tier-section-symbol, .tier-section-label { color: #000 !important; }
+      .tier-q-row { border-top-color: #ddd !important; }
+      .tier-q-num { background: #eee !important; border-color: #ccc !important; color: #000 !important; }
+      .tier-q-concept { color: #666 !important; }
 
       .tier-legend { background: none !important; border: 1px solid #ccc; padding: 6px 12px; margin-bottom: 12px; }
       .tier-legend-label, .tier-legend-item { font-size: 11px; }
@@ -303,13 +324,15 @@
 
     <!-- Lesson info -->
     <div class="lesson-info-bar">
+      <div class="lesson-meta" id="lessonMeta"></div>
       <div class="lesson-title" id="lessonTitle"></div>
+      <div class="lesson-objective-display" id="lessonObjectiveDisplay"></div>
       <div class="lesson-outcomes" id="lessonOutcomes"></div>
     </div>
 
     <!-- Tier legend -->
     <div class="tier-legend">
-      <span class="tier-legend-label">Complete questions at your level:</span>
+      <span class="tier-legend-label">Complete your assigned section:</span>
       <div class="tier-legend-item" style="color:#B8380D">◆ &nbsp;Foundation</div>
       <div class="tier-legend-item" style="color:#2552A0">◆◆ &nbsp;Core</div>
       <div class="tier-legend-item" style="color:#1A5E38">◆◆◆ &nbsp;Extension</div>
@@ -357,6 +380,7 @@
     const ex    = document.getElementById('numEX').value   || 0;
     const eald  = document.getElementById('numEALD').value || 0;
     const notes = document.getElementById('notes').value.trim();
+    window._lessonCtx = { obj, year, subj };
 
     try {
       const res = await fetch('/api/generate', {
@@ -408,35 +432,75 @@
   function renderOutput(data) {
     const info = data.lessonInfo || {};
     const outcomes = (info.syllabusOutcomes || []).map(o => o.code + ': ' + o.description).join(' · ');
+    const ctx = window._lessonCtx || {};
 
-    // Lesson info bar
-    document.getElementById('lessonTitle').textContent   = info.title || 'Lesson Worksheet';
-    document.getElementById('lessonOutcomes').textContent = outcomes;
-    document.getElementById('printTitle').textContent    = info.title || '';
-    document.getElementById('printOutcomes').textContent = outcomes;
+    // Lesson header — shows teacher's input + API outcome data
+    const metaText = [ctx.year, ctx.subj].filter(Boolean).join(' · ');
+    document.getElementById('lessonMeta').textContent = metaText;
+    document.getElementById('lessonTitle').textContent = info.title || 'Lesson Worksheet';
+    document.getElementById('lessonObjectiveDisplay').textContent = ctx.obj ? 'Objective: ' + ctx.obj : '';
+    document.getElementById('lessonOutcomes').textContent = outcomes ? 'NSW Outcomes: ' + outcomes : '';
+    document.getElementById('printTitle').textContent = info.title || '';
+    document.getElementById('printOutcomes').textContent = [metaText, ctx.obj ? 'Objective: ' + ctx.obj : '', outcomes].filter(Boolean).join(' | ');
 
-    // Worksheet
+    // Group all questions by tier across concept groups
+    const tierGroups = { 1: [], 2: [], 3: [] };
+    const groups = (data.worksheet && data.worksheet.conceptGroups) || [];
+    groups.forEach(group => {
+      (group.questions || []).forEach(q => {
+        if (tierGroups[q.tier]) {
+          tierGroups[q.tier].push({ ...q, conceptTitle: group.conceptTitle });
+        }
+      });
+    });
+
+    // Tier section config
+    const tierConfig = [
+      { tier: 1, symbol: '◆',   label: 'Foundation', color: '#B8380D', bg: '#FFF5F2', border: '#F5C4B4', headerBg: '#FDECEA', numBg: '#FFF5F2' },
+      { tier: 2, symbol: '◆◆',  label: 'Core',        color: '#2552A0', bg: '#F2F6FF', border: '#C2D1F0', headerBg: '#EBF0FD', numBg: '#F2F6FF' },
+      { tier: 3, symbol: '◆◆◆', label: 'Extension',   color: '#1A5E38', bg: '#F2FAF5', border: '#AEDCC0', headerBg: '#E6F6ED', numBg: '#F2FAF5' },
+    ];
+
+    // Render tier sections
     const worksheetDiv = document.getElementById('worksheetContent');
     worksheetDiv.innerHTML = '';
-    const groups = (data.worksheet && data.worksheet.conceptGroups) || [];
-    groups.forEach((group, gi) => {
-      const groupEl = document.createElement('div');
-      groupEl.className = 'concept-group';
-      groupEl.innerHTML = '<div class="concept-group-title">Section ' + (gi + 1) + ': ' + escHtml(group.conceptTitle) + '</div>';
-      (group.questions || []).forEach(q => {
-        const color = TIER_COLORS[q.tier] || '#333';
-        groupEl.innerHTML += '<div class="question-row">' +
-          '<div class="q-symbol" style="color:' + color + '">' + escHtml(q.symbol) + '</div>' +
-          '<div class="q-content">' +
+
+    tierConfig.forEach(tc => {
+      const questions = tierGroups[tc.tier] || [];
+      if (questions.length === 0) return;
+
+      const sectionEl = document.createElement('div');
+      sectionEl.className = 'tier-section';
+      sectionEl.style.cssText = 'border: 1.5px solid ' + tc.border + ';';
+
+      // Section header
+      const headerEl = document.createElement('div');
+      headerEl.className = 'tier-section-header';
+      headerEl.style.cssText = 'background:' + tc.headerBg + '; border-bottom: 1.5px solid ' + tc.border + ';';
+      headerEl.innerHTML =
+        '<span class="tier-section-symbol" style="color:' + tc.color + '">' + tc.symbol + '</span>' +
+        '<span class="tier-section-label" style="color:' + tc.color + '">' + tc.label + '</span>';
+      sectionEl.appendChild(headerEl);
+
+      // Questions
+      questions.forEach((q, i) => {
+        const qEl = document.createElement('div');
+        qEl.className = 'tier-q-row';
+        qEl.style.cssText = 'border-top-color:' + tc.border + ';';
+        qEl.innerHTML =
+          '<div class="tier-q-num" style="background:' + tc.numBg + '; border: 1px solid ' + tc.border + '; color:' + tc.color + '">' + (i + 1) + '</div>' +
+          '<div style="flex:1;">' +
+            '<div class="tier-q-concept" style="color:' + tc.color + '">' + escHtml(q.conceptTitle || '') + '</div>' +
             '<div class="q-text">' + escHtml(q.question) + '</div>' +
             renderWorkingLines(q.workingLines || 3) +
             '<div class="answer-reveal" data-answer="' + escAttr(q.answer) + '">' +
               '<strong>Answer:</strong> ' + escHtml(q.answer) +
             '</div>' +
-          '</div>' +
-        '</div>';
+          '</div>';
+        sectionEl.appendChild(qEl);
       });
-      worksheetDiv.appendChild(groupEl);
+
+      worksheetDiv.appendChild(sectionEl);
     });
 
     // Exit slip
