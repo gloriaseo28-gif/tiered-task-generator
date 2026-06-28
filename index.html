@@ -234,6 +234,10 @@
           <input type="text" id="subject" placeholder="e.g. Mathematics, English, Science" />
         </div>
       </div>
+      <div style="margin-bottom:14px">
+        <label for="syllabusOutcome">NSW Syllabus Outcome <span class="opt">(optional — improves alignment precision)</span></label>
+        <input type="text" id="syllabusOutcome" placeholder="e.g. MA3-7NA: compares, orders and calculates with fractions, decimals and percentages" />
+      </div>
       <div>
         <label for="lessonObj">Lesson Objective <span class="required">*</span></label>
         <textarea id="lessonObj" rows="3" placeholder="e.g. Students will use equivalence to add and subtract fractions with unlike denominators."></textarea>
@@ -380,7 +384,8 @@
     const ex    = document.getElementById('numEX').value   || 0;
     const eald  = document.getElementById('numEALD').value || 0;
     const notes = document.getElementById('notes').value.trim();
-    window._lessonCtx = { obj, year, subj };
+    const syllabusOutcome = document.getElementById('syllabusOutcome').value.trim();
+    window._lessonCtx = { obj, year, subj, syllabusOutcome };
 
     try {
       const res = await fetch('/api/generate', {
@@ -390,6 +395,7 @@
           lessonObjective: obj,
           yearLevel: year,
           subject: subj,
+          syllabusOutcome: syllabusOutcome,
           classProfile: { ls, st, ex, eald, notes },
         }),
       });
@@ -431,17 +437,18 @@
   // ── Render output ────────────────────────────────────────────────────────────
   function renderOutput(data) {
     const info = data.lessonInfo || {};
-    const outcomes = (info.syllabusOutcomes || []).map(o => o.code + ': ' + o.description).join(' · ');
+    const aiOutcomes = (info.syllabusOutcomes || []).map(o => o.code + ': ' + o.description).join(' · ');
     const ctx = window._lessonCtx || {};
+    const displayOutcome = ctx.syllabusOutcome || aiOutcomes;
 
-    // Lesson header — shows teacher's input + API outcome data
+    // Lesson header — shows teacher's input + outcome data
     const metaText = [ctx.year, ctx.subj].filter(Boolean).join(' · ');
     document.getElementById('lessonMeta').textContent = metaText;
     document.getElementById('lessonTitle').textContent = info.title || 'Lesson Worksheet';
     document.getElementById('lessonObjectiveDisplay').textContent = ctx.obj ? 'Objective: ' + ctx.obj : '';
-    document.getElementById('lessonOutcomes').textContent = outcomes ? 'NSW Outcomes: ' + outcomes : '';
+    document.getElementById('lessonOutcomes').textContent = displayOutcome ? 'NSW Outcome: ' + displayOutcome : '';
     document.getElementById('printTitle').textContent = info.title || '';
-    document.getElementById('printOutcomes').textContent = [metaText, ctx.obj ? 'Objective: ' + ctx.obj : '', outcomes].filter(Boolean).join(' | ');
+    document.getElementById('printOutcomes').textContent = [metaText, ctx.obj ? 'Objective: ' + ctx.obj : '', displayOutcome ? 'NSW Outcome: ' + displayOutcome : ''].filter(Boolean).join(' | ');
 
     // Group all questions by tier across concept groups
     const tierGroups = { 1: [], 2: [], 3: [] };

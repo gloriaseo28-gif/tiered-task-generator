@@ -8,7 +8,7 @@ module.exports = async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { lessonObjective, yearLevel, subject, classProfile } = req.body || {};
+  const { lessonObjective, yearLevel, subject, syllabusOutcome, classProfile } = req.body || {};
 
   if (!lessonObjective || lessonObjective.trim().length < 10) {
     return res.status(400).json({ error: 'A lesson objective is required (minimum 10 characters).' });
@@ -17,6 +17,7 @@ module.exports = async function handler(req, res) {
   const userMessage = [
     `Year Level: ${yearLevel || 'Not specified'}`,
     `Subject: ${subject || 'Not specified'}`,
+    syllabusOutcome ? `NSW Syllabus Outcome (teacher-specified — use as primary alignment anchor): ${syllabusOutcome}` : null,
     `Lesson Objective: ${lessonObjective}`,
     '',
     'Class Profile:',
@@ -44,6 +45,8 @@ CRITICAL RULES FOR QUESTION WRITING:
 5. Use Australian contexts where relevant (AUD currency, Australian place names, Australian scenarios)
 6. All maths questions must contain real numbers students actually calculate with
 7. Three-diamond questions must require written explanation, justification, or mathematical reasoning — pure computation is not sufficient
+
+NSW SYLLABUS OUTCOME: If a teacher-specified NSW Syllabus Outcome is provided in the input, treat it as the authoritative alignment anchor. Include it verbatim in the syllabusOutcomes array in your response, and map all exit slip questions directly to it using its exact code.
 
 WORKSHEET STRUCTURE:
 - Exactly 3 concept groups
