@@ -1,39 +1,41 @@
 # Tiered Task Generator — Product Requirements Document
 
-**Product:** Tiered Task Generator  
-**Version:** 1.0 — MVP  
+**Product:** Tiered Task Generator — Assessment Worksheet Generator  
+**Version:** 2.2  
 **Author:** Gloria Seo  
 **Date:** June 2026  
-**Status:** MVP Shipped  
-**Live URL:** *(Vercel — add on deployment)*  
-**Repo:** *(GitHub — add on deployment)*
+**Status:** v2.2 Live  
+**Live URL:** https://tiered-task-generator.vercel.app  
+**Repo:** https://github.com/gloriaseo28-gif/tiered-task-generator
 
 ---
 
 ## Executive Summary
 
-**What it is:** A working, AI-powered web application that generates tiered differentiated learning tasks for K–10 teachers. The teacher inputs a lesson objective and class profile; the tool returns three tiers of classroom-ready tasks — Learning Support, Standard, and Extension/G&T — in under 10 seconds.
+**What it is:** A working, AI-powered web application that generates print-ready differentiated assessment worksheets and exit slips for K–10 teachers. The teacher inputs a lesson objective, NSW Syllabus outcome, and class profile; the tool returns three tiers of classroom-ready questions — ◆ Foundation, ◆◆ Core, ◆◆◆ Extension — grouped by difficulty level, plus a three-question exit slip mapped to the specified syllabus outcome. Output renders on screen and prints to A4 in under 15 seconds.
 
-**The problem:** Differentiation is legally required in Australian classrooms but consistently one of the most time-consuming parts of lesson planning. Existing tools — generic AI chatbots, pre-authored curriculum platforms — do not account for a teacher's specific class profile or produce output aligned to the Australian Curriculum. This tool does.
+**The problem:** Differentiation is legally required in Australian classrooms but consistently one of the most time-consuming parts of lesson planning. Existing tools — generic AI chatbots, pre-authored curriculum platforms — do not produce actual questions aligned to a teacher's specific class profile and NSW Syllabus outcome. Teachers who want differentiated resources either spend 30–45 minutes creating them manually or default to one task for the whole class.
 
-**Built and shipped:** Working deployed application (React frontend + Vercel serverless function + Anthropic Claude API), Zapier webhook logging usage to Google Sheets, public GitHub repository with full PRD documentation.
+**Built and shipped:** Working deployed application (HTML/JS frontend + Vercel serverless function + Anthropic Claude API), NSW Syllabus Outcome input field, tier-grouped worksheet layout, print CSS (A4), answer key toggle, Copy Form Text button for Google Forms integration, public GitHub repository with full PRD documentation.
 
 **Key product decisions:**
-- `claude-sonnet-4-6` selected over Haiku (insufficient pedagogical nuance) and Opus (unjustified cost/latency tradeoff for structured task generation)
-- JSON schema enforcement in prompt — a reliability decision with direct UX impact; free-text output broke on edge cases
-- Zapier over custom backend — stage-appropriate validation tool, not a production logging solution
-- All class profile fields optional — discovered through user testing that teachers estimate rather than count
+- `claude-sonnet-4-6` selected over Haiku (insufficient pedagogical nuance) and Opus (unjustified cost/latency tradeoff)
+- Pivoted from task descriptions to actual questions after v1 revealed descriptions require teacher interpretation — the resource itself is the value, not planning guidance
+- JSON schema enforcement in prompt — a reliability decision with direct UX impact; free-text output truncated unpredictably
+- `max_tokens` increased to 4096 after production incident — JSON truncation at 3000 tokens identified via Vercel logs and resolved within 10 minutes
+- Questions grouped by difficulty tier (not interleaved by concept) — based on classroom practicality feedback; teachers direct students to their section, not to navigate three-way splits within each concept
+- NSW Syllabus Outcome field added as optional input — teacher-specified outcome is treated as authoritative alignment anchor, replacing AI inference
 
 **North Star metric:** Return usage rate — target ≥ 50% of first-time users return within 2 weeks.
 
-**Status:** MVP shipped. Two classroom teachers tested the tool pre-submission; output was rated "immediately usable without significant editing." v2 roadmap is scoped and prioritised but unbuilt.
+**Status:** v2.2 live. Quality testing across three subjects (Year 6 Maths, Year 4 English, Year 8 Science) confirms consistent output quality. Remaining work: Make.com automation (response capture and AI analysis), PRD finalisation, cover letters.
 
 | | |
 |---|---|
-| **Live URL** | *(add on Vercel deployment)* |
-| **GitHub repo** | *(add on deployment)* |
+| **Live URL** | https://tiered-task-generator.vercel.app |
+| **GitHub repo** | https://github.com/gloriaseo28-gif/tiered-task-generator |
 | **Model** | claude-sonnet-4-6 |
-| **Stack** | React · Vercel serverless · Anthropic API · Zapier · Google Sheets |
+| **Stack** | HTML/JS · Vercel serverless · Anthropic API · Google Forms · Make.com (planned) |
 
 ---
 
@@ -50,8 +52,10 @@
 6. [Integration Considerations](#6-integration-considerations)
 7. [Zapier Webhook — A Product Decision](#7-zapier-webhook--a-product-decision)
 8. [Architecture Overview](#8-architecture-overview)
-9. [What's Next — v2 Roadmap](#9-whats-next--v2-roadmap)
-10. [Lessons Learned](#10-lessons-learned)
+9. [What's Next — v3 Roadmap](#9-whats-next--v3-roadmap)
+10. [Product Iteration Log](#10-product-iteration-log)
+11. [Known Limitations & Future Paths](#11-known-limitations--future-paths)
+12. [Lessons Learned](#12-lessons-learned)
 
 ---
 
@@ -211,12 +215,20 @@ This section documents how I engaged with the Anthropic API as a set of product 
 
 ### Token Budget
 
-`max_tokens: 1000` was set after systematic testing:
-- Below 800: Extension challenges were frequently truncated or omitted entirely
-- 1000: Consistently generates all three tiers with scaffolds and challenges at appropriate length
-- Above 1200: Tasks became verbose and required editing before use — defeating the core value proposition
+The token limit evolved through production use — each change driven by a specific failure mode discovered after deployment, not in advance.
 
-This was a product decision, not just a parameter choice. Task length directly affects adoption: a teacher who has to trim every output will stop using the tool.
+| Version | `max_tokens` | Reason for change |
+|---------|-------------|-------------------|
+| v1 (task descriptions) | 1,000 | Sufficient for short task description output |
+| v2 initial (worksheet) | 3,000 | Set to accommodate longer worksheet + exit slip output |
+| v2 fix — 26 June | 4,096 | Production truncation: `SyntaxError: Unterminated string in JSON at position 8479`. Maths and English resolved. |
+| v2 fix — 28 June | 6,000 | Production truncation persisted for Science: position 14,838. Subject-variable verbosity identified as root cause. |
+
+**Subject-variable output verbosity** is the key insight from this evolution. Science questions require physical law descriptions, units in every calculation step, and longer contextual setup per question. A Year 8 Newton's Laws worksheet generates materially more JSON than a Year 6 Percentages worksheet at the same question count. Output verbosity scales with subject complexity, not just question count.
+
+**Product implication at scale:** A fixed token limit risks truncation for verbose subjects. The appropriate architecture is dynamic token allocation — estimating expected output length from subject and year level before calling the API. Alternatively, a subject complexity classifier could route Science and HSIE requests to a higher token tier automatically. For current scope, 6,000 provides a safe ceiling across all subjects tested (Maths, English, Science).
+
+This was a product decision at each stage, not just a technical parameter. Task length and completeness directly affect teacher trust: a worksheet that cuts off mid-question is unusable and will not be returned to.
 
 ### Prompt Engineering as a Product Decision
 
@@ -315,22 +327,127 @@ Zapier Webhook → Google Sheets  (usage log)
 
 ---
 
-## 9. What's Next — v2 Roadmap
+## 9. What's Next — v3 Roadmap
 
-Features are prioritised in order of what I would want to learn from v1 usage data before building, and what delivers the most immediate additional teacher value.
+v2.1 and v2.2 are shipped. The roadmap below reflects what comes next, prioritised by what v2 usage data would need to confirm before building, and by impact on the North Star metric.
 
 | Priority | Feature | What I Need to Learn First | Metric it would move |
 |----------|---------|---------------------------|----------------------|
-| 1 | Export to Google Doc / Word | Do teachers use this primarily at a desk (export useful) or in class on a tablet (copy-paste sufficient)? | Task usage rate — reduces friction between generation and classroom deployment |
-| 2 | Australian Curriculum content descriptor tagging | Do teachers want tasks aligned to specific AC descriptors, or does this add unhelpful cognitive overhead? | Task usage rate — increases perceived quality and curriculum trust |
-| 3 | Saved lesson history | What is the return usage rate from v1 data? High return rate justifies authentication complexity. | Return usage rate — gives teachers a persistent reason to return |
-| 4 | Subject-specific prompt templates | Which subjects generate the most demand in v1 logs? Build templates for top 3 only. | Activation rate — reduces friction for first-time generation |
-| 5 | Grouping output | User testing feedback: teachers want to know which students belong to which tier for physical grouping, not just what tasks each tier receives | Task usage rate — closes the identified gap from user research |
-| 6 | LMS integration via LTI 1.3 | Requires an LMS partner; only worth pursuing if v1 validates standalone usage | Activation rate — embeds tool in existing teacher workflow |
+| 1 | Export to Google Doc / Word | Do teachers use this at a desk (export useful) or on a tablet during class (copy-paste sufficient)? | Task usage rate — reduces friction between generation and classroom use |
+| 2 | Make.com automation: response capture + AI analysis | Does the hybrid Google Forms format produce analysis accurate enough to be useful? Validate with 3 teachers first. | Return usage rate — teachers who get analysis come back for the next lesson |
+| 3 | Saved lesson history | What is the return usage rate from v2 data? High return rate justifies authentication complexity. | Return usage rate — persistent library gives teachers a reason to return |
+| 4 | Stage-specific NSW Syllabus embedding | Which stage and subject generates most demand in logs? Build Stage 3 Maths first. | Task usage rate — deeper alignment increases curriculum trust and perceived quality |
+| 5 | AI vision on photographed student working | Is AI vision accurate enough to reduce teacher review burden below 10% of responses? | Return usage rate — removes the digital barrier for maths and science teachers |
+| 6 | LTI 1.3 / Learnosity API integration | Requires LMS or Learnosity partnership; only worth pursuing if standalone usage is validated | Activation rate — embeds tool in existing teacher workflow; removes Google Forms workaround |
 
 ---
 
-## 10. Lessons Learned
+## 10. Product Iteration Log
+
+This section documents the product evolution from v1 through v2.2 as a PM decision record. Each iteration was driven by a specific discovery or user insight, not by scope expansion.
+
+### v1 — Task Description Generator (Shipped 26 June 2026)
+
+**What shipped:** The tool accepted a lesson objective and class profile and returned three tiers of differentiated task *descriptions* — outlines of what students should do, not the actual resources.
+
+**What v1 validated:** The core input model (lesson objective + class profile) is the right framing. Generation speed and Australian Curriculum alignment both confirmed as working.
+
+**What v1 revealed:** Task descriptions require teacher interpretation before they become usable. A teacher who receives "design a word problem involving fractions" still has to write the word problem. The output was a planning aid, not a classroom resource — a different and less valuable product than what was needed.
+
+---
+
+### v2 — Assessment Worksheet Generator (Shipped 26 June 2026)
+
+**The pivot decision:** The entire output layer was rebuilt. The tool now generates actual questions with working space, scaffolds for Foundation students, extension challenges for Extension/G&T students, and a three-question exit slip — replacing task descriptions entirely.
+
+**Why this pivot:** Practitioner insight (10+ years in classrooms) confirmed by peer feedback. Teachers don't need help deciding what to teach. They need the resource in their hands. The gap between "task descriptions" and "questions students can answer right now" is where the tool was failing.
+
+**The assessment angle:** Chosen deliberately. Learnosity is an assessment infrastructure company. Pivoting to an assessment output aligned the portfolio piece to the role domain — not as a surface-level signal but as a genuine product decision with pedagogical reasoning behind it.
+
+**Production incident:** `max_tokens: 3000` caused JSON truncation on first live deployment — the model hit the token ceiling mid-response, producing valid JSON up to the limit then cutting off. Diagnosed via Vercel runtime logs (SyntaxError: Unterminated string in JSON at position 8479). Fixed by increasing `max_tokens` to 4096. Resolution time: under 10 minutes from error identification to verified fix in production. Documented as platform reliability management, not just a technical bug fix.
+
+---
+
+### v2.1 — Tier-Grouped Layout + Lesson Header (Shipped 27 June 2026)
+
+**Tier grouping:** Questions previously appeared interleaved by concept — each concept section showed ◆ / ◆◆ / ◆◆◆ together. Changed to group all questions by tier across the full worksheet. Rationale: teachers direct students to their section at the start of the lesson. Three clear sections make that instruction natural. The interleaved format required more navigation from both teacher and student in practice.
+
+**Lesson header:** Year level, subject, lesson objective, and NSW Syllabus outcome added to the top of the worksheet — on screen and on the printed page. A printed worksheet should be self-contained for filing, sharing, and future reference without needing the teacher to annotate it.
+
+---
+
+### v2.2 — NSW Syllabus Outcome Input Field (Shipped 28 June 2026)
+
+NSW teachers plan and assess to syllabus outcomes — outcomes are the unit of curriculum accountability. Without an explicit outcome, the AI inferred it from the lesson objective, introducing interpretation that could be inaccurate across stages with similar language. With the teacher specifying the outcome, the system prompt treats it as the authoritative alignment anchor and maps exit slip questions directly to the specified code. Backwards compatible: if left blank, AI identifies the outcome as before.
+
+---
+
+## 11. Known Limitations & Future Paths
+
+This section documents current limitations honestly, with proposed mitigations at each stage. A PM who can identify gaps and articulate solution paths demonstrates more rigour than one who papers over weaknesses.
+
+### Limitation 1 — Digital Assessment Response Quality for Mathematics
+
+**The problem:** The exit slip is designed to be completed on paper. If delivered digitally via Google Forms, students type free-text responses. For English and humanities, this works well — paragraph explanations are natural in a text field. For mathematics, three meaningful problems arise:
+
+- **Typed text is unnatural for mathematical working.** A student who correctly calculates on paper might type "45" with no working — technically right but unassessable for method. The AI can only evaluate what it receives.
+- **Partial credit becomes interpretive.** If a student answers part (a) correctly and part (b) incorrectly, the AI must infer that from a free-text string that may be formatted any number of ways.
+- **Mathematical notation is lost.** Fractions, squared symbols, and division signs are approximated in text ("38 over 418", "x²"), requiring normalisation before evaluation and introducing ambiguity.
+
+**Current mitigation — Hybrid response format:** Rather than pure free-text fields, the Google Form uses structured input types: numerical answers as fill-in-the-blank (auto-marked by Google Forms' native answer key at zero AI cost); one short text field per question for showing working or reasoning (sent to Claude for qualitative evaluation); multiple-choice for conclusions (auto-marked), with a text field for the explanation. This concentrates AI evaluation on qualitative reasoning — where it performs well — and removes format ambiguity from the quantitative parts.
+
+**Near-term path — AI vision on photographed working (v3):** A student photographs their handwritten working; the image is uploaded to the API; the model extracts the working using OCR and spatial reasoning; and the working is evaluated against the expected method and answer. This bridges the notation gap and preserves the natural format for mathematics. Current limitation: frontier models are significantly improved at reading handwritten mathematics but not yet precise enough for unassisted automated marking. The appropriate architecture is AI-assisted review — the model evaluates clear-cut responses and flags borderline cases for teacher inspection, rather than auto-deciding mastery. Human in the loop on edge cases; AI handles the majority. This is defensible and practically deployable.
+
+**Proper infrastructure solution — Learnosity API (v4):** Learnosity's item types — fill-in-the-blank, equation editor, MCQ, ordering, drag-and-drop — capture structured maths responses that are simultaneously auto-markable and pedagogically meaningful. No format mismatch, no notation problem, no Google Forms workaround. Response data is captured at item level, not paragraph level, which makes outcome-level analysis accurate rather than interpretive. The current tool exposes exactly the gap that Learnosity's infrastructure solves: consumer-grade response capture (Google Forms) is sufficient for individual teacher use but breaks at the precision required for reliable outcome mapping at scale. A v4 integration would replace Google Forms with Learnosity's delivery and response capture layer, feed structured item-level responses directly into the AI analysis endpoint, and produce outcome mastery data that is defensible for reporting purposes — not just indicative.
+
+---
+
+### Limitation 2 — NSW Syllabus Depth (Outcome Level Only)
+
+**The problem:** The tool generates questions aligned to NSW Syllabus outcomes at the outcome level (e.g. MA3-7NA). It does not yet align to specific content descriptors, elaborations, or working mathematically processes within each outcome. A teacher planning to a specific content descriptor receives questions that address the outcome broadly but may not target the precise sub-skill they are teaching that day.
+
+**Current mitigation:** The NSW Syllabus Outcome input field (v2.2) allows the teacher to specify the outcome explicitly, anchoring generation more precisely than AI inference alone.
+
+**Future path — Stage-specific Syllabus Embedding (v3):** Embed the full NSW Syllabus outcomes, content descriptors, and elaborations for a target stage directly in the system prompt. This enables generation aligned to specific content descriptors, and marking criteria referenced to syllabus standards rather than generic answer keys. Implementation requires curriculum curation — the syllabus text must be accurate, not summarised. Planned scope: Stage 3 Mathematics and English first; other stages only after output quality is validated against known syllabus standards.
+
+---
+
+### Limitation 3 — Scale and Multi-Tenancy
+
+**The problem:** The tool is built for individual teacher use. At school or district scale: there is no authentication (any teacher with the URL can access the tool, with no usage associated to a school or class); there is no persistent storage (lesson history exists only in the browser session); and the API key is shared across all users with no per-school rate limiting or cost allocation.
+
+**Current mitigation:** Usage logging via Zapier → Google Sheets provides a lightweight audit trail without authentication. Appropriate for portfolio demonstration and individual use.
+
+**Future path:** School-level deployment would require OAuth 2.0 or LTI 1.3 authentication, a database for persistent lesson history, and per-institution API key management or SaaS pricing that abstracts the API cost. This is 4–6 weeks of engineering work minimum, and should only be pursued after standalone usage validates the core value proposition.
+
+---
+
+### Limitation 4 — AI Output Reliability
+
+**The problem:** Output varies between generations with identical inputs. A teacher who generates a worksheet and regenerates the following week receives different questions. The model can also produce pedagogically incorrect content — wrong mathematical answers, or questions that don't directly address the stated objective.
+
+**Current mitigation:** Disclaimer displayed at the bottom of every output: "Review all content before distributing. Always exercise teacher judgement." Answer key toggle allows teachers to verify generated answers before distribution. JSON schema enforcement reduces structural variability; prompt constraints reduce content variability.
+
+**Future path:** Output quality monitoring via usage logs (tracking teacher-reported accuracy), A/B testing of prompt variations against the task usage rate metric, and a per-question thumbs up/down mechanism that feeds into prompt refinement cycles.
+
+---
+
+### Limitation 5 — Subject-Variable Output Verbosity
+
+**The problem:** Output token length varies significantly by subject. A Year 8 Science worksheet about Newton's Laws requires physical law descriptions, units in every calculation step, and longer contextual setup per question. This produces materially more JSON than a Year 6 Maths or Year 4 English worksheet at the same question count. A fixed `max_tokens` ceiling risks truncation for verbose subjects — which presents as a broken worksheet in the teacher's browser, not a graceful error.
+
+**Evidence from production:** Three token limit increases were required after deployment:
+- `max_tokens: 3000` (initial v2) → truncation on Maths
+- `max_tokens: 4096` (26 June fix) → resolved Maths and English; truncation persisted for Science
+- `max_tokens: 6000` (28 June fix) → resolved Science; current ceiling
+
+**Current mitigation:** `max_tokens: 6000` with graceful error handling — if the API returns an error or truncated output, the teacher sees a clear error message and a "try again" prompt rather than a broken partial worksheet.
+
+**Future path:** Dynamic token allocation based on subject and year level — estimating expected output verbosity before calling the API and setting `max_tokens` accordingly. A subject complexity classifier could route Science, HSIE, and other verbose subjects to a higher token tier automatically. This is a meaningful architecture improvement for multi-subject deployment at scale.
+
+---
+
+## 12. Lessons Learned
 
 **An assumption that broke:** I initially designed all class profile fields as required inputs, assuming teachers would know the precise breakdown of their class by ability level. In practice, many don't — they have a rough sense ("maybe 4 or 5 G&T students") rather than a verified count. I changed all fields to optional with a default of zero. The tool remains useful with incomplete information. This was caught early because I am a teacher and recognised the assumption immediately. A developer without domain knowledge would likely have shipped the required-fields version and wondered why completion rates were low.
 
@@ -342,4 +459,4 @@ Features are prioritised in order of what I would want to learn from v1 usage da
 
 ---
 
-*PRD v1.0 — June 2026 | Gloria Seo | [github.com/your-repo]*
+*PRD v2.2 — June 2026 | Gloria Seo | github.com/gloriaseo28-gif/tiered-task-generator*
