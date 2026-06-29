@@ -308,7 +308,7 @@ This is a deliberate stage-gate decision: validate usage before investing in inf
 Teacher (browser)
     │
     ▼
-Frontend — React, deployed on Vercel
+Frontend — HTML/CSS/JavaScript, deployed on Vercel
     │
     ▼
 Vercel Serverless Function  (/api/generate)
