@@ -1,8 +1,8 @@
 # Tiered Task Generator
 
-> An AI-powered differentiation tool for Australian K–10 teachers. Enter a lesson objective and class profile — receive three tiers of classroom-ready tasks in under 10 seconds.
+> An AI-powered differentiation tool for Australian K–10 teachers. Enter a lesson objective and class profile — receive a print-ready differentiated worksheet, tiered exit slip, and answer key in under 15 seconds.
 
-**[Live Demo →](https://your-app.vercel.app)** &nbsp;·&nbsp; **[Product Requirements Document →](./PRD.md)**
+**[Live Demo →](https://tiered-task-generator.vercel.app)** &nbsp;·&nbsp; **[Product Requirements Document →](./PRD.md)**
 
 ---
 
@@ -12,14 +12,16 @@ Australian teachers are legally required to differentiate instruction for every 
 
 **Input:**
 - Lesson objective
+- NSW Syllabus Outcome (optional - improves alignment precision)
 - Year level + subject
-- Class profile (student counts per group: Learning Support, Standard, Extension/G&T, EAL/D)
+- Class profile (student counts per group: Foundation, Core, Extension, EAL/D)
 
 **Output:**
-- Three tiers of specific, immediately usable tasks
-- Scaffolds and support strategies for the Learning Support tier
+- Three-tier differentiated worksheet (Foundation/Core/Extension) with working space
+- Exit slip (three questions mapped to the NSW Syllabus outcome, one per tier)
+- Scaffolds and support strategies for the Foundation tier
 - Higher-order challenges for the Extension/G&T tier
-- All aligned to the Australian Curriculum (AC v9), in Australian English
+- All aligned to the NSW Syllabus
 
 ## Tech stack
 
@@ -45,7 +47,7 @@ This project was built as a portfolio piece demonstrating PM and AI product thin
 - API integration decisions (model selection, token budget, prompt engineering as a product decision)
 - Integration considerations (auth, data privacy, developer experience)
 - Zapier webhook — framed as a product decision
-- v2 roadmap tied to success metrics
+- v3 roadmap tied to success metrics
 - Lessons learned
 
 → [Read the full PRD](./PRD.md)
@@ -54,7 +56,7 @@ This project was built as a portfolio piece demonstrating PM and AI product thin
 
 1. Clone the repo
    ```bash
-   git clone https://github.com/your-username/tiered-task-generator.git
+   git clone https://github.com/gloriaseo28-gif/tiered-task-generator.git
    cd tiered-task-generator
    ```
 
@@ -87,8 +89,6 @@ This project was built as a portfolio piece demonstrating PM and AI product thin
 Built by **Gloria Seo** — Sydney-based educator transitioning into AI Product Management and L&D roles.
 
 Combines 10+ years of classroom experience in differentiated instruction and Gifted & Talented education with AI tooling, prompt engineering, and product thinking.
-
-[LinkedIn](https://linkedin.com/in/your-profile)
 
 ---
 
